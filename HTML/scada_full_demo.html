@@ -216,12 +216,13 @@ const layoutCols=16;
 // defines one physical panel row and receives one centered indicator per cell.
 const horizontalBoundaries=[400,475,545,630,735,850,980,1110,1240,1370,1500,1615,1720,1810];
 const layoutRows=horizontalBoundaries.length-1;
+const topRowPositions=new Map([[0,560],[3,660],[7,790],[8,910],[12,1040],[15,1140]]);
 function moduleCenter(row,col){
  const cy=(horizontalBoundaries[row]+horizontalBoundaries[row+1])/2;
+ if(row===0)return {cx:topRowPositions.get(col),cy};
  const normalizedY=(cy-1210)/800;
  // Keep the indicator center one full marker-width inside the outer globe.
  let radius=660*Math.sqrt(Math.max(.025,1-normalizedY*normalizedY));
- if(row===0)radius*=1.16;
  // Longitude midpoints follow the curved purple boundaries instead of using
  // straight, evenly spaced x coordinates.
  const theta=-Math.PI/2+(col+.5)*(Math.PI/layoutCols);
@@ -262,29 +263,32 @@ function makeHistory(status){
 }
 function colorClass(s){return s=="healthy"?"greenText":s=="warning"?"yellowText":s=="offline"?"greyText":"red"}
 
-function addModule(id,cx,cy,status,row){
+function addModule(id,cx,cy,status,offset,view){
  const temp=status=="fault"?68.2:status=="warning"?61.4:status=="offline"?0:(38+Math.random()*12).toFixed(1);
  const volt=status=="fault"?4.62:status=="warning"?4.51:status=="offline"?0:(4.75+Math.random()*.18).toFixed(2);
  const data={id,status,temp:Number(temp),volt:Number(volt),brightness:65,controller:"BC-"+String(Math.ceil(parseInt(id.slice(1))/40)).padStart(2,"0"),port:"P"+((parseInt(id.slice(1))%16)+1),card:"A5S Plus",time:new Date().toLocaleTimeString(),history:makeHistory(status)};
  modules[id]=data; counts[status]++;
- [0,1700].forEach((offset,index)=>{
-  const view=index===0?"front":"back",x=cx+offset;
-  const g=el("g",{"data-id":id,id:`g-${view}-${id}`});
-  g.appendChild(el("circle",{cx:x,cy,r:25,class:"hit-area"}));
-  g.appendChild(el("circle",{cx:x,cy,r:12,class:"status "+status}));
-  const text=el("text",{x,y:cy+29,class:"id"});text.textContent=id;g.appendChild(text);svg.appendChild(g);
-  g.onmouseenter=e=>{showTip(e,data);updatePanel(data)};
-  g.onmousemove=moveTip;g.onmouseleave=()=>tip.style.display="none";g.onclick=()=>selectModule(id);
- });
+ const x=cx+offset;
+ const g=el("g",{"data-id":id,id:`g-${view}-${id}`});
+ g.appendChild(el("circle",{cx:x,cy,r:25,class:"hit-area"}));
+ g.appendChild(el("circle",{cx:x,cy,r:12,class:"status "+status}));
+ const text=el("text",{x,y:cy+29,class:"id"});text.textContent=id;g.appendChild(text);svg.appendChild(g);
+ g.onmouseenter=e=>{showTip(e,data);updatePanel(data)};
+ g.onmousemove=moveTip;g.onmouseleave=()=>tip.style.display="none";g.onclick=()=>selectModule(id);
 }
 
 svg.appendChild(el("image",{href:"../JPG/FRONT.jpg",x:0,y:0,width:1700,height:2200,preserveAspectRatio:"none"}));
 svg.appendChild(el("image",{href:"../JPG/BACK.jpg",x:1700,y:0,width:1700,height:2200,preserveAspectRatio:"none"}));
 let moduleNumber=0;
 for(let row=0;row<layoutRows;row++){for(let col=0;col<layoutCols;col++){
+ if(row===0&&!topRowPositions.has(col))continue;
  const {cx,cy}=moduleCenter(row,col);
- if(insideDoorOpening(cx,cy)||outsidePanelBoundary(row,col)||outsideGlobe(cx,cy))continue;
- const id="D"+String(++moduleNumber).padStart(3,"0"), st=randStatus(id); addModule(id,cx,cy,st,row);
+ if(insideDoorOpening(cx,cy)||outsidePanelBoundary(row,col)||(row>0&&outsideGlobe(cx,cy)))continue;
+ const frontNumber=++moduleNumber;
+ const frontId="D"+String(frontNumber).padStart(3,"0");
+ const backId="D"+String(frontNumber+170).padStart(3,"0");
+ addModule(frontId,cx,cy,randStatus(frontId),0,"front");
+ addModule(backId,cx,cy,randStatus(backId),1700,"back");
 }}
 document.getElementById("total").textContent=Object.keys(modules).length;
 document.getElementById("healthyCount").textContent=counts.healthy;
@@ -452,7 +456,7 @@ function endPointer(e){
 }
 vp.onpointerup=endPointer;vp.onpointercancel=endPointer;
 vp.onwheel=e=>{e.preventDefault();zoomBy(e.deltaY<0?1.12:.88)}
-function centerOn(id){const g=document.getElementById("g-front-"+id);if(!g)return;const box=g.getBBox();tx=vp.clientWidth/2-(box.x+box.width/2)*scale;ty=vp.clientHeight/2-(box.y+box.height/2)*scale;apply()}
+function centerOn(id){const g=document.getElementById("g-front-"+id)||document.getElementById("g-back-"+id);if(!g)return;const box=g.getBBox();tx=vp.clientWidth/2-(box.x+box.width/2)*scale;ty=vp.clientHeight/2-(box.y+box.height/2)*scale;apply()}
 setInterval(()=>{
  Object.values(modules).forEach(d=>{if(d.status!="offline"){
   const previous=d.history[d.history.length-1];
