@@ -3,179 +3,164 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AVR Project Dashboard</title>
+    <title>EOI - presentation</title>
     <style>
       :root {
         --bg: #07111f;
         --panel: #102238;
-        --panel-2: #16334f;
         --text: #f3f7fb;
         --muted: #9eb2c7;
         --accent: #4fc3f7;
-        --accent-2: #7c4dff;
       }
 
       * { box-sizing: border-box; }
+
       body {
+        min-height: 100vh;
         margin: 0;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, var(--bg), #0f2238 70%, #15314a);
+        background:
+          radial-gradient(circle at top, rgba(79, 195, 247, 0.14), transparent 38%),
+          linear-gradient(135deg, var(--bg), #0f2238 70%, #15314a);
         color: var(--text);
       }
 
-      .wrap {
-        max-width: 1200px;
+      main {
+        width: min(1100px, calc(100% - 40px));
         margin: 0 auto;
-        padding: 24px;
+        padding: 48px 0;
       }
 
-      .hero {
-        background: rgba(16, 34, 56, 0.9);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 20px;
-        padding: 28px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      header {
+        margin-bottom: 28px;
+        text-align: center;
       }
 
-      .hero h1 {
-        margin: 0 0 8px;
-        font-size: 2rem;
+      .company-logo {
+        display: block;
+        width: min(260px, 70vw);
+        height: 64px;
+        margin: 0 auto 20px;
+        object-fit: contain;
       }
 
-      .hero p {
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 6vw, 4rem);
+        letter-spacing: -0.04em;
+      }
+
+      header p {
         margin: 0;
         color: var(--muted);
-        line-height: 1.6;
+        font-size: 1.05rem;
       }
 
-      .cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin: 20px 0;
-      }
-
-      .card {
-        background: var(--panel);
-        border-radius: 16px;
-        padding: 18px;
-        border: 1px solid rgba(255,255,255,0.08);
-      }
-
-      .card h3 { margin-top: 0; margin-bottom: 8px; }
-      .card p { margin: 0; color: var(--muted); }
-      .pill {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: rgba(79,195,247,0.15);
-        color: var(--accent);
-        font-size: 0.85rem;
-      }
-
-      .section {
-        margin-top: 24px;
-        background: rgba(16, 34, 56, 0.95);
-        border-radius: 20px;
-        padding: 20px;
-        border: 1px solid rgba(255,255,255,0.08);
-      }
-
-      .section h2 { margin-top: 0; }
       .gallery {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
       }
 
-      .image-card {
-        background: var(--panel-2);
-        border-radius: 16px;
-        padding: 12px;
-        color: inherit;
+      .picture-link {
+        position: relative;
         display: block;
-        text-decoration: none;
-        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-        border: 1px solid rgba(255,255,255,0.08);
+        min-height: 280px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        background: var(--panel);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
       }
 
-      .image-card:hover,
-      .image-card:focus-visible {
-        border-color: rgba(79,195,247,0.75);
-        box-shadow: 0 12px 28px rgba(0,0,0,0.28);
-        transform: translateY(-2px);
+      .picture-link:first-child {
+        grid-column: 1 / -1;
+        min-height: 220px;
+        padding: 42px;
+      }
+
+      .picture-link:hover,
+      .picture-link:focus-visible {
+        transform: translateY(-4px);
+        border-color: var(--accent);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
         outline: none;
       }
 
-      .image-card img {
+      .picture-link img {
         width: 100%;
-        height: auto;
+        height: 100%;
         display: block;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.08);
+        object-fit: cover;
+        transition: transform 300ms ease;
       }
 
-      .image-card h4 { margin: 10px 0 6px; }
-      .image-card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+      .picture-link:first-child img { object-fit: contain; }
+      .picture-link:hover img { transform: scale(1.025); }
 
-      .footer {
-        text-align: center;
+      .picture-link span {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        padding: 9px 13px;
+        border-radius: 999px;
+        background: rgba(7, 17, 31, 0.86);
+        color: var(--text);
+        font-size: 0.9rem;
+        font-weight: 700;
+        backdrop-filter: blur(6px);
+      }
+
+      .photo-credit {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        padding: 9px 13px;
+        border-radius: 999px;
+        background: rgba(7, 17, 31, 0.86);
         color: var(--muted);
-        margin-top: 24px;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+        backdrop-filter: blur(6px);
+      }
+
+      .photo-credit strong {
+        color: #ffe066;
+        font-weight: 800;
+      }
+
+      @media (max-width: 700px) {
+        main { width: min(100% - 24px, 1100px); padding: 30px 0; }
+        .gallery { grid-template-columns: 1fr; gap: 14px; }
+        .picture-link,
+        .picture-link:first-child { grid-column: auto; min-height: 220px; }
+        .picture-link:first-child { padding: 24px; }
       }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <section class="hero">
-        <h1>AVR Project Dashboard</h1>
-        <p>This page summarizes the work visually and gives a quick overview of the project flowcharts and progress.</p>
-      </section>
+    <main>
+      <header>
+        <img class="company-logo" src="JPG/Clear logo horizontal.bmp" alt="Clear company logo" />
+        <h1>EOI - presentation</h1>
+        <p>Select any picture to view the flowchart.</p>
+      </header>
 
-      <section class="cards">
-        <div class="card">
-          <h3>Project</h3>
-          <p>AVR work repository with flowchart assets and documentation.</p>
-          <span class="pill">GitHub Ready</span>
-        </div>
-        <div class="card">
-          <h3>Visual Assets</h3>
-          <p>Flowchart images are organized in the project folder for review.</p>
-          <span class="pill">2 diagrams</span>
-        </div>
-        <div class="card">
-          <h3>Status</h3>
-          <p>Repository is active and source-control friendly.</p>
-          <span class="pill">In Progress</span>
-        </div>
-        <div class="card">
-          <h3>Next Step</h3>
-          <p>Use this page as a simple overview while refining the project.</p>
-          <span class="pill">Open in browser</span>
-        </div>
+      <section class="gallery" aria-label="Presentation images">
+        <a class="picture-link" href="flowchart.html" aria-label="Open flowchart from Changi Airport image">
+          <img src="JPG/Changi-airport.png" alt="Changi Airport" />
+          <div class="photo-credit">Credit to <strong>Jino Lee</strong></div>
+          <span>View flowchart</span>
+        </a>
+        <a class="picture-link" href="flowchart.html" aria-label="Open flowchart from presentation picture 1">
+          <img src="JPG/pic1.jpeg" alt="Presentation picture 1" />
+          <span>View flowchart</span>
+        </a>
+        <a class="picture-link" href="flowchart.html" aria-label="Open flowchart from presentation picture 2">
+          <img src="JPG/pic2.jpeg" alt="Presentation picture 2" />
+          <span>View flowchart</span>
+        </a>
       </section>
-
-      <section class="section">
-        <h2>Flowchart Gallery</h2>
-        <div class="gallery">
-          <a class="image-card" href="avr_scada_full_demo.html">
-            <img src="flowchart/Designer.png" alt="Designer flowchart" />
-            <h4>Designer View</h4>
-            <p>Initial design-oriented flowchart for the AVR workflow.</p>
-          </a>
-          <a class="image-card" href="avr_scada_full_demo.html">
-            <img src="flowchart/Detail Flowchart.png" alt="Detailed flowchart" />
-            <h4>Detailed Flowchart</h4>
-            <p>A more detailed version showing the step-by-step logic.</p>
-          </a>
-        </div>
-      </section>
-
-      <div class="footer">
-        Open this file in a browser to review the project dashboard.
-      </div>
-    </div>
+    </main>
   </body>
 </html>
