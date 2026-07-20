@@ -7,24 +7,28 @@
 <title>SCADA Demo</title>
 <style>
 :root{
-  --green:#16b364;--yellow:#f5b700;--red:#f04444;--dark:#4b5563;
-  --blue:#2f78ff;--line:#edb5b5;--bg:#f8fafc;--text:#111827;--muted:#6b7280;
+  --green:#35d07f;--yellow:#ffd24a;--red:#ff6464;--dark:#7890aa;
+  --blue:#49b3ff;--line:#31506f;--bg:#041426;--surface:#0a223a;
+  --surface-2:#0f2d49;--border:#294763;--text:#f2f7ff;--muted:#aec0d5;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
-header{height:70px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 24px;gap:18px}
+body{margin:0;padding-left:180px;font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+.site-nav{position:fixed;inset:0 auto 0 0;z-index:100;width:180px;display:flex;flex-direction:column;gap:8px;padding:24px 14px;background:#020e1b;border-right:1px solid var(--border)}
+.site-nav a{padding:12px 14px;border-radius:10px;color:var(--muted);font-weight:700;text-decoration:none}.site-nav a:hover{background:#123653;color:#fff}.site-nav a.active{background:var(--blue);color:#031321}
+header{height:70px;background:#061b30;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:18px}
 .company-logo{width:150px;height:42px;object-fit:contain;object-position:left center}
 h1{font-size:22px;margin:0}
 .online{display:flex;align-items:center;gap:8px;font-size:14px}.online:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--green)}
 .version{font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
 .controls{margin-left:auto;display:flex;gap:10px;align-items:center}
-input,button,select{height:40px;border:1px solid #d8dee9;border-radius:9px;background:#fff;padding:0 12px;font-size:14px}
-button{cursor:pointer}.primary{background:var(--blue);color:white;border:0;font-weight:700}
-main{height:calc(100vh - 170px);position:relative;background:#fff}
-.legend{position:absolute;z-index:10;left:auto;right:77px;top:auto;bottom:18px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px #0001;width:160px;transform:scale(.75);transform-origin:bottom center}
+input,button,select{height:40px;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);padding:0 12px;font-size:14px}
+input::placeholder{color:#8da4bd}
+button{cursor:pointer}.primary{background:var(--blue);color:#031321;border:0;font-weight:800}
+main{height:calc(100vh - 170px);position:relative;background:var(--bg)}
+.legend{position:absolute;z-index:10;left:auto;right:77px;top:auto;bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 20px #0005;width:160px;transform:scale(.75);transform-origin:bottom center}
 .legend h3{font-size:13px;margin:0;padding:16px}
 .legend div{display:flex;gap:10px;align-items:center;padding:8px 16px;font-size:14px}
-.legend small{display:block;border-top:1px solid #e5e7eb;padding:12px 16px;color:var(--muted)}
+.legend small{display:block;border-top:1px solid var(--border);padding:12px 16px;color:var(--muted)}
 .legend-dot{width:16px;height:16px;border-radius:50%;display:inline-block}.healthy{background:var(--green)}.warning{background:var(--yellow)}.fault{background:var(--red)}.offline{background:var(--dark)}
 #viewport{height:100%;width:100%;overflow:hidden;cursor:grab;touch-action:none}
 #world{transform-origin:0 0}
@@ -36,51 +40,52 @@ svg{width:3400px;height:2200px;display:block;background:#fff}
 .status.healthy{fill:var(--green)}.status.warning{fill:var(--yellow)}.status.fault{fill:var(--red);animation:flash 1s infinite}.status.offline{fill:var(--dark)}
 @keyframes flash{0%,100%{opacity:1;filter:drop-shadow(0 0 3px #f04444)}50%{opacity:.25;filter:drop-shadow(0 0 14px #f04444)}}
 .id{font-size:13px;font-weight:700;text-anchor:middle;fill:#374151;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;pointer-events:none}
-.panel{position:absolute;right:18px;top:88px;width:238px;max-height:calc(100% - 104px);overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px #0002;padding:12px;z-index:10}
+.panel{position:absolute;right:18px;top:88px;width:238px;max-height:calc(100% - 104px);overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px #0006;padding:12px;z-index:10}
 .panel h2{font-size:16px;margin:0 0 8px;color:var(--red)}
 .row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:12px}.row b{font-weight:700;text-align:right}
-.red{color:var(--red)}.greenText{color:var(--green)}.yellowText{color:#c98900}.greyText{color:var(--dark)}
-hr{border:0;border-top:1px solid #e5e7eb;margin:7px 0}
+.red{color:var(--red)}.greenText{color:var(--green)}.yellowText{color:var(--yellow)}.greyText{color:#b7c5d5}
+hr{border:0;border-top:1px solid var(--border);margin:7px 0}
 .slider{width:100%}
-canvas{width:100%;height:58px;border:1px solid #e5e7eb;border-radius:8px}
-.tooltip{position:fixed;display:none;pointer-events:none;z-index:30;background:#111827;color:white;border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.45;box-shadow:0 8px 20px #0005;white-space:nowrap}
-footer{height:100px;background:#fff;border-top:1px solid #e5e7eb;display:grid;grid-template-columns:repeat(7,1fr);gap:14px;padding:14px 24px}
-.card{border:1px solid #e5e7eb;border-radius:12px;padding:13px;background:#fff}.card small{font-weight:700;color:var(--muted)}.card strong{display:block;font-size:20px;margin-top:6px}
+canvas{width:100%;height:58px;border:1px solid var(--border);border-radius:8px;background:#06192d}
+.tooltip{position:fixed;display:none;pointer-events:none;z-index:30;background:#020b14;color:var(--text);border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.45;box-shadow:0 8px 20px #0008;white-space:nowrap}
+footer{height:100px;background:#061b30;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(7,1fr);gap:14px;padding:14px 24px}
+.card{border:1px solid var(--border);border-radius:12px;padding:13px;background:var(--surface)}.card small{font-weight:700;color:var(--muted)}.card strong{display:block;font-size:20px;margin-top:6px;color:var(--text)}
 .panel label{display:block;font-size:12px;margin:6px 0 4px;color:var(--muted)}
 .panel button{width:100%;height:34px;margin-top:8px}
-#testMsg{min-height:14px;font-size:12px;color:#6b7280}
+#testMsg{min-height:14px;font-size:12px;color:var(--muted)}
 .trend-duration{margin-top:4px;font-size:11px;color:var(--muted);text-align:center}
 .highlight .status{stroke:var(--blue);stroke-width:6}
-.overview{height:100%;overflow:auto;padding:24px 28px 40px;background:#f8fafc}
+.overview{height:100%;overflow:auto;padding:24px 28px 40px;background:var(--bg)}
 .overview[hidden]{display:none}
 .overview-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
 .overview-head h2{margin:0;font-size:22px}.overview-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
 .overview-action{border-color:var(--blue);color:var(--blue);font-weight:700}
 .overview-controls{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:14px;margin-bottom:18px}
-.control-card{padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 4px 14px #0001}
+.control-card{padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 14px #0004}
 .control-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:8px}.control-card strong{font-size:23px}
 .control-card .button-row{display:flex;gap:6px;flex-wrap:wrap}.control-card button{height:32px;min-width:62px;padding:0 10px}
-.control-card button.enabled{background:var(--blue);border-color:var(--blue);color:#fff}
+.control-card button.enabled{background:var(--blue);border-color:var(--blue);color:#031321}
 .screen-strip{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:22px}
 .screen-strip span{height:28px;border-radius:3px;background:linear-gradient(180deg,#398a27,#1b5e20);border:1px solid #86a76e}
-.receiver-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 4px 14px #0001}
-.receiver-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid #e5e7eb}
+.receiver-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 4px 14px #0004}
+.receiver-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
 .receiver-title h3{margin:0}.receiver-title input{width:220px}
 .overview-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
 .overview-filters button{height:34px;padding:0 11px;font-weight:700}
-.overview-filters button.active{background:var(--blue);border-color:var(--blue);color:#fff}
-.board-filters{position:absolute;z-index:12;top:12px;left:50%;transform:translateX(-50%);display:flex;max-width:calc(100% - 24px);overflow-x:auto;gap:6px;padding:7px;border:1px solid #d8dee9;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 6px 18px #0002}
-.board-filters[hidden]{display:none}.board-filters button{height:34px;padding:0 12px;font-weight:700}.board-filters button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.overview-filters button.active{background:var(--blue);border-color:var(--blue);color:#031321}
+.board-filters{position:absolute;z-index:12;top:12px;left:50%;transform:translateX(-50%);display:flex;max-width:calc(100% - 24px);overflow-x:auto;gap:6px;padding:7px;border:1px solid var(--border);border-radius:12px;background:rgba(10,34,58,.96);box-shadow:0 6px 18px #0006}
+.board-filters[hidden]{display:none}.board-filters button{height:34px;padding:0 12px;font-weight:700}.board-filters button.active{background:var(--blue);border-color:var(--blue);color:#031321}
 .table-wrap{overflow:auto}
 .receiver-table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:13px}
-.receiver-table th,.receiver-table td{padding:11px 13px;text-align:left;border-bottom:1px solid #eef1f5}
-.receiver-table th{position:sticky;top:0;background:#f8fafc;color:#4b5563;font-size:12px;z-index:1}
+.receiver-table th,.receiver-table td{padding:11px 13px;text-align:left;border-bottom:1px solid var(--border)}
+.receiver-table th{position:sticky;top:0;background:#0c2842;color:#d5e4f5;font-size:12px;z-index:1}
+.receiver-table tbody tr:hover{background:#123452}
 .sort-button{height:auto;padding:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:700;white-space:nowrap}.sort-button:hover{color:var(--blue)}
 .sort-arrow{display:inline-block;min-width:13px;margin-left:3px;color:var(--blue)}
 .status-pill,.value-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-weight:700}
 .status-pill.healthy,.value-pill{background:#e3f5e8;color:#16723b}.status-pill.warning{background:#fff3cd;color:#926600}.status-pill.fault{background:#fee4e2;color:#b42318}.status-pill.offline{background:#e5e7eb;color:#4b5563}
 @media(max-width:900px){
- body{overflow:auto}header{gap:8px;padding:0 12px}.company-logo{width:110px;height:34px}h1{font-size:16px}.controls{display:none}
+ body{padding:58px 0 0;overflow:auto}.site-nav{inset:0 0 auto;width:auto;height:56px;padding:7px 10px;flex-direction:row;justify-content:center;border-right:0;border-bottom:1px solid var(--border)}.site-nav a{padding:10px;font-size:12px}header{gap:8px;padding:0 12px}.company-logo{width:110px;height:34px}h1{font-size:16px}.controls{display:none}
  main{height:auto;display:flex;flex-direction:column;padding-bottom:10px}
  #viewport{height:68vh;min-height:420px;order:1;touch-action:none}
  .panel{position:static;order:2;width:auto;max-height:none;margin:12px}
@@ -91,6 +96,11 @@ footer{height:100px;background:#fff;border-top:1px solid #e5e7eb;display:grid;gr
 </style>
 </head>
 <body>
+<nav class="site-nav" aria-label="Main navigation">
+  <a href="../index.html">Home</a>
+  <a class="active" href="scada_full_demo.html" aria-current="page">Display Monitor</a>
+  <a href="../flowchart.html">Project Dashboard</a>
+</nav>
 <header>
   <img class="company-logo" src="../JPG/Clear logo horizontal.bmp" alt="Clear company logo"><h1>DISPLAY MONITOR</h1><div class="online">System Online</div><div class="version">Ver 1.1</div>
   <div class="controls">
@@ -216,7 +226,7 @@ const layoutCols=16;
 // defines one physical panel row and receives one centered indicator per cell.
 const horizontalBoundaries=[400,475,545,630,735,850,980,1110,1240,1370,1500,1615,1720,1810];
 const layoutRows=horizontalBoundaries.length-1;
-const topRowPositions=new Map([[0,560],[3,660],[7,790],[8,910],[12,1040],[15,1140]]);
+const topRowPositions=new Map([[0,660],[3,700],[7,790],[8,910],[12,980],[15,1050]]);
 function moduleCenter(row,col){
  const cy=(horizontalBoundaries[row]+horizontalBoundaries[row+1])/2;
  if(row===0)return {cx:topRowPositions.get(col),cy};
@@ -258,15 +268,24 @@ function randStatus(id){
 function makeHistory(status){
  if(status==="offline")return Array(20).fill(0);
  const base=status==="fault"?68:status==="warning"?59:44;
- const swing=status==="fault"?8:status==="warning"?6:2;
- return Array.from({length:20},(_,i)=>+(base+(i%2?swing:-swing)+(Math.random()-.5)*2).toFixed(1));
+ const volatility=status==="fault"?2.5:status==="warning"?1.6:.55;
+ const history=[];
+ let current=base+(Math.random()-.5)*3,velocity=0;
+ for(let i=0;i<20;i++){
+  velocity=velocity*.58+(Math.random()-.5)*volatility;
+  const occasionalRise=(status==="fault"&&i>11&&i<16)?.65:0;
+  current+=velocity+(base-current)*.1+occasionalRise;
+  current=Math.min(74.5,Math.max(25,current));
+  history.push(+current.toFixed(1));
+ }
+ return history;
 }
 function colorClass(s){return s=="healthy"?"greenText":s=="warning"?"yellowText":s=="offline"?"greyText":"red"}
 
 function addModule(id,cx,cy,status,offset,view){
- const temp=status=="fault"?68.2:status=="warning"?61.4:status=="offline"?0:(38+Math.random()*12).toFixed(1);
  const volt=status=="fault"?4.62:status=="warning"?4.51:status=="offline"?0:(4.75+Math.random()*.18).toFixed(2);
- const data={id,status,temp:Number(temp),volt:Number(volt),brightness:65,controller:"BC-"+String(Math.ceil(parseInt(id.slice(1))/40)).padStart(2,"0"),port:"P"+((parseInt(id.slice(1))%16)+1),card:"A5S Plus",time:new Date().toLocaleTimeString(),history:makeHistory(status)};
+ const history=makeHistory(status);
+ const data={id,status,temp:history[history.length-1],volt:Number(volt),brightness:65,controller:"BC-"+String(Math.ceil(parseInt(id.slice(1))/40)).padStart(2,"0"),port:"P"+((parseInt(id.slice(1))%16)+1),card:"A5S Plus",time:new Date().toLocaleTimeString(),history};
  modules[id]=data; counts[status]++;
  const x=cx+offset;
  const g=el("g",{"data-id":id,id:`g-${view}-${id}`});
@@ -279,14 +298,16 @@ function addModule(id,cx,cy,status,offset,view){
 
 svg.appendChild(el("image",{href:"../JPG/FRONT.jpg",x:0,y:0,width:1700,height:2200,preserveAspectRatio:"none"}));
 svg.appendChild(el("image",{href:"../JPG/BACK.jpg",x:1700,y:0,width:1700,height:2200,preserveAspectRatio:"none"}));
-let moduleNumber=0;
+let moduleNumber=0,positionNumber=0,currentPositionNumber=0;
 for(let row=0;row<layoutRows;row++){for(let col=0;col<layoutCols;col++){
  if(row===0&&!topRowPositions.has(col))continue;
  const {cx,cy}=moduleCenter(row,col);
  if(insideDoorOpening(cx,cy)||outsidePanelBoundary(row,col)||(row>0&&outsideGlobe(cx,cy)))continue;
+ if([148,149].includes(++positionNumber))continue;
+ if([161,162,167,168].includes(++currentPositionNumber))continue;
  const frontNumber=++moduleNumber;
  const frontId="D"+String(frontNumber).padStart(3,"0");
- const backId="D"+String(frontNumber+170).padStart(3,"0");
+ const backId="D"+String(frontNumber+164).padStart(3,"0");
  addModule(frontId,cx,cy,randStatus(frontId),0,"front");
  addModule(backId,cx,cy,randStatus(backId),1700,"back");
 }}
@@ -405,13 +426,20 @@ function updatePanel(d){
  document.getElementById("port").textContent=d.port;
  document.getElementById("card").textContent=d.card;
  document.getElementById("time").textContent=d.time;
- drawTrend(d.history);
+ drawTrend(d.history,d.status);
 }
 function selectModule(id){if(modules[id])updatePanel(modules[id])}
-function drawTrend(arr){
+function drawTrend(arr,status){
  const c=document.getElementById("trend"),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);
  ctx.beginPath();ctx.moveTo(0,85);ctx.lineTo(260,85);ctx.strokeStyle="#e5e7eb";ctx.stroke();
- ctx.beginPath();arr.forEach((v,i)=>{let x=i*(260/(arr.length-1)),y=85-(v/75)*75;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle="#f04444";ctx.lineWidth=2;ctx.stroke();
+ const points=arr.map((v,i)=>({x:i*(260/(arr.length-1)),y:85-(v/75)*75}));
+ ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
+ for(let i=1;i<points.length-1;i++){
+  const midpoint={x:(points[i].x+points[i+1].x)/2,y:(points[i].y+points[i+1].y)/2};
+  ctx.quadraticCurveTo(points[i].x,points[i].y,midpoint.x,midpoint.y);
+ }
+ ctx.lineTo(points[points.length-1].x,points[points.length-1].y);
+ ctx.strokeStyle=status==="fault"?"#f04444":status==="warning"?"#d99a00":status==="offline"?"#4b5563":"#16b364";ctx.lineWidth=2;ctx.stroke();
 }
 function setBrightness(v){if(!selected)return;modules[selected].brightness=v;document.getElementById("bright").textContent=v+" %"}
 function testPattern(){document.getElementById("testMsg").textContent="Test pattern sent to "+selected+" (demo only)."}
@@ -460,9 +488,14 @@ function centerOn(id){const g=document.getElementById("g-front-"+id)||document.g
 setInterval(()=>{
  Object.values(modules).forEach(d=>{if(d.status!="offline"){
   const previous=d.history[d.history.length-1];
+  const beforePrevious=d.history[d.history.length-2]??previous;
   const base=d.status==="fault"?68:d.status==="warning"?59:44;
-  const swing=d.status==="fault"?8:d.status==="warning"?6:2;
-  d.temp=+(base+(previous>=base?-swing:swing)+(Math.random()-.5)*2).toFixed(1);
+  const volatility=d.status==="fault"?2.5:d.status==="warning"?1.6:.55;
+  const momentum=(previous-beforePrevious)*.45;
+  const correction=(base-previous)*.1;
+  const occasionalShift=Math.random()<.06?(Math.random()-.35)*(d.status==="fault"?3:1.5):0;
+  d.temp=+(previous+momentum+correction+(Math.random()-.5)*volatility+occasionalShift).toFixed(1);
+  d.temp=Math.min(74.5,Math.max(25,d.temp));
   d.volt=+(d.volt+(Math.random()-.5)*.04).toFixed(2);d.history.push(d.temp);d.history=d.history.slice(-20);d.time=new Date().toLocaleTimeString()
  }});
  document.getElementById("lastUpdate").textContent=new Date().toLocaleTimeString();
