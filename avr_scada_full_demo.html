@@ -1,0 +1,239 @@
+<!-- AVR SCADA Dashboard Version 1.1 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AVR SCADA Demo</title>
+<style>
+:root{
+  --green:#16b364;--yellow:#f5b700;--red:#f04444;--dark:#4b5563;
+  --blue:#2f78ff;--line:#edb5b5;--bg:#f8fafc;--text:#111827;--muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+header{height:70px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 24px;gap:18px}
+.logo{font-size:32px;font-weight:900;color:var(--blue)}
+h1{font-size:22px;margin:0}
+.online{display:flex;align-items:center;gap:8px;font-size:14px}.online:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--green)}
+.version{font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
+.controls{margin-left:auto;display:flex;gap:10px;align-items:center}
+input,button,select{height:40px;border:1px solid #d8dee9;border-radius:9px;background:#fff;padding:0 12px;font-size:14px}
+button{cursor:pointer}.primary{background:var(--blue);color:white;border:0;font-weight:700}
+main{height:calc(100vh - 170px);position:relative;background:#fff}
+.legend{position:absolute;z-index:10;left:auto;right:77px;top:auto;bottom:18px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px #0001;width:160px;transform:scale(.75);transform-origin:bottom center}
+.legend h3{font-size:13px;margin:0;padding:16px}
+.legend div{display:flex;gap:10px;align-items:center;padding:8px 16px;font-size:14px}
+.legend small{display:block;border-top:1px solid #e5e7eb;padding:12px 16px;color:var(--muted)}
+.diamond{width:18px;height:18px;transform:rotate(45deg);display:inline-block}.healthy{background:var(--green)}.warning{background:var(--yellow)}.fault{background:var(--red)}.offline{background:var(--dark)}
+#viewport{height:100%;width:100%;overflow:hidden;cursor:grab;touch-action:none}
+#world{transform-origin:0 0}
+svg{width:1700px;height:760px;display:block}
+.module-outline{fill:#fff;stroke:var(--line);stroke-width:2}
+.hit-area{fill:transparent;cursor:pointer}
+.status{stroke:#fff;stroke-width:7;cursor:pointer;filter:drop-shadow(0 2px 4px #0003);transform-box:fill-box;transform-origin:center}
+.status:hover{transform:scale(1.45)}
+.status.healthy{fill:var(--green)}.status.warning{fill:var(--yellow)}.status.fault{fill:var(--red);animation:flash 1s infinite}.status.offline{fill:var(--dark)}
+@keyframes flash{0%,100%{opacity:1;filter:drop-shadow(0 0 3px #f04444)}50%{opacity:.25;filter:drop-shadow(0 0 14px #f04444)}}
+.id{font-size:22px;font-weight:700;text-anchor:middle;fill:#374151;pointer-events:none}
+.panel{position:absolute;right:18px;top:88px;width:238px;max-height:calc(100% - 104px);overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px #0002;padding:12px;z-index:10}
+.panel h2{font-size:16px;margin:0 0 8px;color:var(--red)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:12px}.row b{font-weight:700;text-align:right}
+.red{color:var(--red)}.greenText{color:var(--green)}.yellowText{color:#c98900}.greyText{color:var(--dark)}
+hr{border:0;border-top:1px solid #e5e7eb;margin:7px 0}
+.slider{width:100%}
+canvas{width:100%;height:58px;border:1px solid #e5e7eb;border-radius:8px}
+.tooltip{position:fixed;display:none;pointer-events:none;z-index:30;background:#111827;color:white;border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.45;box-shadow:0 8px 20px #0005;white-space:nowrap}
+footer{height:100px;background:#fff;border-top:1px solid #e5e7eb;display:grid;grid-template-columns:repeat(7,1fr);gap:14px;padding:14px 24px}
+.card{border:1px solid #e5e7eb;border-radius:12px;padding:13px;background:#fff}.card small{font-weight:700;color:var(--muted)}.card strong{display:block;font-size:20px;margin-top:6px}
+.panel label{display:block;font-size:12px;margin:6px 0 4px;color:var(--muted)}
+.panel button{width:100%;height:34px;margin-top:8px}
+#testMsg{min-height:14px;font-size:12px;color:#6b7280}
+.highlight polygon:first-child{stroke:var(--blue);stroke-width:5}
+@media(max-width:900px){
+ body{overflow:auto}header{gap:8px;padding:0 12px}.logo{font-size:24px}h1{font-size:16px}.controls{display:none}
+ main{height:auto;display:flex;flex-direction:column;padding-bottom:10px}
+ #viewport{height:68vh;min-height:420px;order:1;touch-action:none}
+ .panel{position:static;order:2;width:auto;max-height:none;margin:12px}
+ .legend{position:static;order:3;display:block;width:auto;margin:0 12px 12px;transform:none}
+ footer{height:auto;grid-template-columns:repeat(2,1fr);padding:12px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">◆</div><h1>AVR DISPLAY MONITOR</h1><div class="online">System Online</div><div class="version">Ver 1.1</div>
+  <div class="controls">
+    <input id="search" aria-label="Search module ID" placeholder="Search Module ID, e.g. D125">
+    <button type="button" aria-label="Search modules" onclick="searchModule()">🔎 Search</button>
+    <button type="button" aria-label="Zoom in" onclick="zoomBy(1.2)">＋</button>
+    <button type="button" aria-label="Zoom out" onclick="zoomBy(0.8)">－</button>
+    <button type="button" aria-label="Reset view" onclick="resetView()">Reset</button>
+    <select aria-label="View mode"><option>Board View</option><option>Alarm View</option><option>Temperature View</option></select>
+  </div>
+</header>
+
+<main>
+  <section class="legend">
+    <h3>STATUS LEGEND</h3>
+    <div><span class="diamond healthy"></span>Healthy</div>
+    <div><span class="diamond warning"></span>Warning</div>
+    <div><span class="diamond fault"></span>Fault flashing</div>
+    <div><span class="diamond offline"></span>Offline</div>
+    <small>Hover = tooltip<br>Click = detail panel<br>Drag = pan, wheel = zoom</small>
+  </section>
+
+  <div id="viewport"><div id="world"><svg id="board" viewBox="180 650 4400 1950" aria-label="Original 193-panel screen layout"></svg></div></div>
+
+  <aside class="panel">
+    <h2 id="title">MODULE D247</h2>
+    <div class="row"><span>Status</span><b id="status" class="red">Fault</b></div>
+    <div class="row"><span>Temperature</span><b id="temp" class="red">68.2 °C</b></div>
+    <div class="row"><span>Voltage</span><b id="volt" class="red">4.62 V</b></div>
+    <div class="row"><span>Brightness</span><b id="bright">65 %</b></div>
+    <hr>
+    <div class="row"><span>Controller</span><b id="controller">BC-07</b></div>
+    <div class="row"><span>Port</span><b id="port">P12</b></div>
+    <div class="row"><span>Receiving Card</span><b id="card">A5S Plus</b></div>
+    <div class="row"><span>Last Update</span><b id="time">10:24:35</b></div>
+    <hr>
+    <label>Brightness Control</label>
+    <input id="brightness" class="slider" type="range" min="0" max="100" value="65" aria-label="Brightness control" oninput="setBrightness(this.value)">
+    <button type="button" class="primary" aria-label="Send test pattern" onclick="testPattern()">Test Pattern</button>
+    <div id="testMsg" role="status" aria-live="polite"></div>
+    <label>Temperature Trend</label>
+    <canvas id="trend" width="260" height="90"></canvas>
+  </aside>
+
+  <div id="tooltip" class="tooltip"></div>
+</main>
+
+<footer>
+  <div class="card"><small>TOTAL MODULES</small><strong id="total">0</strong></div>
+  <div class="card"><small class="greenText">HEALTHY</small><strong id="healthyCount">0</strong></div>
+  <div class="card"><small class="yellowText">WARNING</small><strong id="warningCount">0</strong></div>
+  <div class="card"><small class="red">FAULT</small><strong id="faultCount">0</strong></div>
+  <div class="card"><small class="greyText">OFFLINE</small><strong id="offlineCount">0</strong></div>
+  <div class="card"><small>AUTO REFRESH</small><strong>ON</strong></div>
+  <div class="card"><small>LAST UPDATE</small><strong id="lastUpdate">--:--:--</strong></div>
+</footer>
+
+<script>
+const svg=document.getElementById("board"), tip=document.getElementById("tooltip"), world=document.getElementById("world"), vp=document.getElementById("viewport");
+let scale=0.82, tx=150, ty=10, selected=null, modules={};
+let counts={healthy:0,warning:0,fault:0,offline:0};
+
+function p(cx,cy,w,h){return `${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`}
+function el(t,a){const n=document.createElementNS("http://www.w3.org/2000/svg",t);Object.entries(a).forEach(([k,v])=>n.setAttribute(k,v));return n}
+const layoutRows=11, layoutCols=18;
+// Five true omissions in the original 18 x 11 positional lattice.
+// Partial rhombuses, trapezoids and triangles remain visible in the JPG itself.
+const omitted=new Set(["0,8","0,9","1,8","5,2","5,14"]);
+const rowY=[2485,2366,2187,2007,1828,1648,1469,1289,1111,931,804];
+function moduleCenter(row,col){
+ const startX=row%2===0?345:463;
+ return {cx:startX+col*234.5,cy:rowY[row]};
+}
+const forced={D119:"fault",D139:"warning",D238:"offline",D247:"fault",D422:"warning",D479:"fault",D502:"fault",D472:"warning",D112:"offline",D174:"warning",D223:"offline",D503:"fault"};
+function randStatus(id){if(forced[id])return forced[id];let r=Math.random();return r<.78?"healthy":r<.88?"warning":r<.94?"offline":"fault"}
+function colorClass(s){return s=="healthy"?"greenText":s=="warning"?"yellowText":s=="offline"?"greyText":"red"}
+
+function addModule(id,cx,cy,status,row){
+ const temp=status=="fault"?68.2:status=="warning"?61.4:status=="offline"?0:(38+Math.random()*12).toFixed(1);
+ const volt=status=="fault"?4.62:status=="warning"?4.51:status=="offline"?0:(4.75+Math.random()*.18).toFixed(2);
+ const data={id,status,temp:Number(temp),volt:Number(volt),brightness:65,controller:"BC-"+String(Math.ceil(parseInt(id.slice(1))/40)).padStart(2,"0"),port:"P"+((parseInt(id.slice(1))%16)+1),card:"A5S Plus",time:new Date().toLocaleTimeString(),history:Array.from({length:20},()=>35+Math.random()*28)};
+ modules[id]=data; counts[status]++;
+ const g=el("g",{"data-id":id,id:"g-"+id});
+ g.appendChild(el("polygon",{points:p(cx,cy,190,285),class:"hit-area"}));
+ g.appendChild(el("polygon",{points:p(cx,cy-28,48,48),class:"status "+status}));
+ const text=el("text",{x:cx,y:cy+58,class:"id"});text.textContent=id;g.appendChild(text);svg.appendChild(g);
+ g.onmouseenter=e=>{showTip(e,data);updatePanel(data)};
+ g.onmousemove=moveTip; g.onmouseleave=()=>tip.style.display="none"; g.onclick=()=>selectModule(id);
+}
+
+svg.appendChild(el("image",{href:"Doc/screen-layout.jpg",x:0,y:0,width:4678,height:3309,preserveAspectRatio:"none"}));
+let moduleNumber=0;
+for(let row=0;row<layoutRows;row++){for(let col=0;col<layoutCols;col++){
+ if(omitted.has(`${row},${col}`))continue;
+ const {cx,cy}=moduleCenter(row,col);
+ const id="D"+String(++moduleNumber).padStart(3,"0"), st=randStatus(id); addModule(id,cx,cy,st,row);
+}}
+document.getElementById("total").textContent=Object.keys(modules).length;
+document.getElementById("healthyCount").textContent=counts.healthy;
+document.getElementById("warningCount").textContent=counts.warning;
+document.getElementById("faultCount").textContent=counts.fault;
+document.getElementById("offlineCount").textContent=counts.offline;
+
+function showTip(e,d){
+ tip.innerHTML=`<b>${d.id}</b><br>Status: ${d.status.toUpperCase()}<br>Voltage: ${d.volt} V<br>Temp: ${d.temp} °C<br>${d.controller} / ${d.port}`;
+ tip.style.display="block"; moveTip(e);
+}
+function moveTip(e){tip.style.left=e.clientX+14+"px";tip.style.top=e.clientY+14+"px"}
+function updatePanel(d){
+ selected=d.id;
+ document.querySelectorAll(".highlight").forEach(x=>x.classList.remove("highlight"));
+ const g=document.getElementById("g-"+d.id); if(g)g.classList.add("highlight");
+ document.getElementById("title").textContent="MODULE "+d.id;
+ ["status","temp","volt"].forEach(x=>document.getElementById(x).className=colorClass(d.status));
+ document.getElementById("status").textContent=d.status[0].toUpperCase()+d.status.slice(1);
+ document.getElementById("temp").textContent=d.temp+" °C";
+ document.getElementById("volt").textContent=d.volt+" V";
+ document.getElementById("bright").textContent=d.brightness+" %";
+ document.getElementById("brightness").value=d.brightness;
+ document.getElementById("controller").textContent=d.controller;
+ document.getElementById("port").textContent=d.port;
+ document.getElementById("card").textContent=d.card;
+ document.getElementById("time").textContent=d.time;
+ drawTrend(d.history);
+}
+function selectModule(id){if(modules[id])updatePanel(modules[id])}
+function drawTrend(arr){
+ const c=document.getElementById("trend"),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);
+ ctx.beginPath();ctx.moveTo(0,85);ctx.lineTo(260,85);ctx.strokeStyle="#e5e7eb";ctx.stroke();
+ ctx.beginPath();arr.forEach((v,i)=>{let x=i*(260/(arr.length-1)),y=85-(v/75)*75;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle="#f04444";ctx.lineWidth=2;ctx.stroke();
+}
+function setBrightness(v){if(!selected)return;modules[selected].brightness=v;document.getElementById("bright").textContent=v+" %"}
+function testPattern(){document.getElementById("testMsg").textContent="Test pattern sent to "+selected+" (demo only)."}
+function searchModule(){const id=document.getElementById("search").value.trim().toUpperCase();if(modules[id]){selectModule(id);centerOn(id)}else alert("Module not found")}
+function apply(){world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
+function zoomBy(f){scale=Math.min(2.5,Math.max(.35,scale*f));apply()}
+function resetView(){scale=.82;tx=150;ty=10;apply()}
+const pointers=new Map();
+let drag=false,sx=0,sy=0,pinchDistance=0,pinchScale=scale,pinchWorldX=0,pinchWorldY=0;
+function pointerDistance(){const [a,b]=[...pointers.values()];return Math.hypot(b.x-a.x,b.y-a.y)}
+function pointerMidpoint(){const [a,b]=[...pointers.values()];return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+vp.onpointerdown=e=>{
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ vp.setPointerCapture(e.pointerId);
+ if(pointers.size===1){drag=true;sx=e.clientX-tx;sy=e.clientY-ty}
+ if(pointers.size===2){
+  drag=false;pinchDistance=pointerDistance();pinchScale=scale;
+  const mid=pointerMidpoint(),rect=vp.getBoundingClientRect();
+  pinchWorldX=(mid.x-rect.left-tx)/scale;pinchWorldY=(mid.y-rect.top-ty)/scale;
+ }
+}
+vp.onpointermove=e=>{
+ if(!pointers.has(e.pointerId))return;
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pointers.size===2){
+  const mid=pointerMidpoint(),rect=vp.getBoundingClientRect();
+  scale=Math.min(2.5,Math.max(.35,pinchScale*pointerDistance()/pinchDistance));
+  tx=mid.x-rect.left-pinchWorldX*scale;ty=mid.y-rect.top-pinchWorldY*scale;apply();
+ }else if(drag){tx=e.clientX-sx;ty=e.clientY-sy;apply()}
+}
+function endPointer(e){
+ pointers.delete(e.pointerId);
+ if(pointers.size===1){const [p]=pointers.values();drag=true;sx=p.x-tx;sy=p.y-ty}else drag=false;
+}
+vp.onpointerup=endPointer;vp.onpointercancel=endPointer;
+vp.onwheel=e=>{e.preventDefault();zoomBy(e.deltaY<0?1.12:.88)}
+function centerOn(id){const g=document.getElementById("g-"+id);if(!g)return; const box=g.getBBox();tx=vp.clientWidth/2-(box.x+box.width/2)*scale;ty=vp.clientHeight/2-(box.y+box.height/2)*scale;apply()}
+setInterval(()=>{
+ Object.values(modules).forEach(d=>{if(d.status!="offline"){d.temp=+(d.temp+(Math.random()-.5)*.8).toFixed(1);d.volt=+(d.volt+(Math.random()-.5)*.04).toFixed(2);d.history.push(d.temp);d.history=d.history.slice(-20);d.time=new Date().toLocaleTimeString()}});
+ document.getElementById("lastUpdate").textContent=new Date().toLocaleTimeString();
+ if(selected)updatePanel(modules[selected]);
+},2000);
+resetView();selectModule("D119");
+</script>
+</body>
+</html>
