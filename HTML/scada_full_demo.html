@@ -321,8 +321,8 @@ function addModule(id,cx,cy,status,offset,view,row,col){
  g.onmousemove=moveTip;g.onmouseleave=()=>tip.style.display="none";g.onclick=()=>selectModule(id);
 }
 
-svg.appendChild(el("image",{href:"../JPG/FRONT.png",x:85,y:0,width:1530,height:2200,preserveAspectRatio:"none"}));
-svg.appendChild(el("image",{href:"../JPG/BACK.png",x:1785,y:0,width:1530,height:2200,preserveAspectRatio:"none"}));
+svg.appendChild(el("image",{href:"../JPG/FRONT.png?v=20260721-1",x:85,y:0,width:1530,height:2200,preserveAspectRatio:"none"}));
+svg.appendChild(el("image",{href:"../JPG/BACK.png?v=20260721-1",x:1785,y:0,width:1530,height:2200,preserveAspectRatio:"none"}));
 const frontTitle=el("text",{x:850,y:2140,class:"model-title"});
 frontTitle.textContent="FRONT";
 svg.appendChild(frontTitle);
