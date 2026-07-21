@@ -87,7 +87,9 @@ footer{height:100px;background:#061b30;border-top:1px solid var(--border);displa
 .status-pill,.value-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-weight:700}
 .status-pill.healthy,.value-pill{background:#e3f5e8;color:#16723b}.status-pill.warning{background:#fff3cd;color:#926600}.status-pill.fault{background:#fee4e2;color:#b42318}.status-pill.offline{background:#e5e7eb;color:#4b5563}
 @media(max-width:900px){
- body{padding:58px 0 0;overflow:auto}.site-nav{inset:0 0 auto;width:auto;height:56px;padding:7px 10px;flex-direction:row;justify-content:center;border-right:0;border-bottom:1px solid var(--border)}.site-nav a{padding:10px;font-size:12px}header{top:56px;height:auto;min-height:70px;flex-wrap:wrap;gap:8px;padding:8px 12px}.company-logo{width:110px;height:34px}h1{font-size:16px}.version{display:none}.board-filters{display:none}
+ body{padding:58px 0 0;overflow:auto}.site-nav{inset:0 0 auto;width:auto;height:56px;padding:7px 10px;flex-direction:row;justify-content:center;border-right:0;border-bottom:1px solid var(--border)}.site-nav a{padding:10px;font-size:12px}header{top:56px;height:auto;min-height:70px;flex-wrap:wrap;gap:8px;padding:8px 12px}.company-logo{width:110px;height:34px}h1{font-size:16px}.version{display:none}
+ .board-filters{order:9;display:flex;width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+ .board-filters[hidden]{display:none}
  .controls{display:flex;margin-left:auto}.controls>:not(select){display:none}.controls select{display:block;width:142px;min-width:142px}
  .overview-header-tools{order:10;width:100%;overflow-x:auto;padding:2px 0 5px}.overview-header-tools .overview-filters{flex:0 0 auto}.overview-header-tools input{flex:0 0 150px}
  main{height:auto;display:flex;flex-direction:column;padding-bottom:10px}
@@ -259,7 +261,7 @@ function outsidePanelBoundary(row,col){
  return col<edgeTrim||col>=layoutCols-edgeTrim;
 }
 function outsideGlobe(cx,cy){
- // Strict inner ellipse: the entire 12 px indicator must remain inside the
+ // Strict inner ellipse: the entire 18 px indicator must remain inside the
  // visible globe outline, not merely its center point.
  const dx=(cx-850)/675;
  const dy=(cy-1210)/785;
@@ -299,7 +301,7 @@ function addModule(id,cx,cy,status,offset,view){
  const x=cx+offset;
  const g=el("g",{"data-id":id,id:`g-${view}-${id}`});
  g.appendChild(el("circle",{cx:x,cy,r:25,class:"hit-area"}));
- g.appendChild(el("circle",{cx:x,cy,r:12,class:"status "+status}));
+ g.appendChild(el("circle",{cx:x,cy,r:18,class:"status "+status}));
  const text=el("text",{x,y:cy+29,class:"id"});text.textContent=id;g.appendChild(text);svg.appendChild(g);
  g.onmouseenter=e=>{showTip(e,data);updatePanel(data)};
  g.onmousemove=moveTip;g.onmouseleave=()=>tip.style.display="none";g.onclick=()=>selectModule(id);
