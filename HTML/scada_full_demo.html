@@ -67,6 +67,7 @@ footer{height:80px;background:#061b30;border-top:1px solid var(--border);display
 .control-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:8px}.control-card strong{font-size:23px}
 .control-card .button-row{display:flex;gap:6px;flex-wrap:wrap}.control-card button{height:32px;min-width:62px;padding:0 10px}
 .control-card button.enabled{background:var(--blue);border-color:var(--blue);color:#031321}
+.brightness-knob-wrap{display:flex;align-items:center;gap:14px}.brightness-knob{--value:65.88;position:relative;width:76px;height:76px;min-width:76px;padding:0;border:0;border-radius:50%;background:conic-gradient(from 225deg,var(--blue) 0deg, var(--blue) calc(var(--value)*2.7deg),#1b3b58 calc(var(--value)*2.7deg),#1b3b58 270deg,transparent 270deg);box-shadow:inset 0 0 0 1px var(--border),0 4px 12px #0005;touch-action:none}.brightness-knob::before{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#173c5b,#071a2d 68%);box-shadow:inset 0 0 0 1px #31506f}.brightness-knob::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:24px;border-radius:3px;background:var(--text);transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(calc(-135deg + var(--value)*2.7deg));box-shadow:0 0 4px #000}.brightness-readout{display:flex;align-items:baseline;gap:3px}.brightness-readout strong{font-size:23px}.brightness-readout span{color:var(--muted);font-size:13px;font-weight:700}
 .screen-strip{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:22px}
 .screen-strip span{height:28px;border-radius:3px;background:linear-gradient(180deg,#398a27,#1b5e20);border:1px solid #86a76e}
 .receiver-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:visible;box-shadow:0 4px 14px #0004}
@@ -164,10 +165,10 @@ footer{height:80px;background:#061b30;border-top:1px solid var(--border);display
       <button class="overview-action" type="button">Change Screen</button>
     </div>
     <div class="overview-controls">
-      <article class="control-card"><small>Brightness (%)</small><strong>65.88</strong><div class="button-row"><button class="enabled" type="button">Change</button></div></article>
+      <article class="control-card"><small>Brightness (%)</small><div class="brightness-knob-wrap"><button class="brightness-knob" id="overviewBrightnessKnob" type="button" role="slider" aria-label="Screen brightness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65.88"></button><div class="brightness-readout"><strong id="overviewBrightnessValue">65.88</strong><span>%</span></div></div></article>
+      <article class="control-card"><small>Mapping Overlay</small><strong>Disabled</strong><div class="button-row"><button type="button">Enable</button><button type="button">Disable</button></div></article>
       <article class="control-card"><small>Blackout</small><strong>Disabled</strong><div class="button-row"><button type="button">Enable</button><button type="button">Disable</button></div></article>
       <article class="control-card"><small>Test Pattern</small><strong>Disabled</strong><div class="button-row"><button type="button">Red</button><button type="button">Green</button><button type="button">Blue</button><button type="button">Disable</button></div></article>
-      <article class="control-card"><small>Mapping Overlay</small><strong>Disabled</strong><div class="button-row"><button type="button">Enable</button><button type="button">Disable</button></div></article>
     </div>
     <div class="screen-strip" aria-label="Display sections"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
     <section class="receiver-section">
@@ -478,6 +479,32 @@ function drawTrend(arr,status){
  ctx.strokeStyle=status==="fault"?"#f04444":status==="warning"?"#d99a00":status==="offline"?"#4b5563":"#16b364";ctx.lineWidth=2;ctx.stroke();
 }
 function setBrightness(v){if(!selected)return;modules[selected].brightness=v;document.getElementById("bright").textContent=v+" %"}
+const overviewBrightnessKnob=document.getElementById("overviewBrightnessKnob");
+const overviewBrightnessValue=document.getElementById("overviewBrightnessValue");
+let overviewBrightness=65.88;
+function updateOverviewBrightness(value){
+ overviewBrightness=Math.min(100,Math.max(0,Number(value)));
+ const displayValue=overviewBrightness.toFixed(2);
+ overviewBrightnessKnob.style.setProperty("--value",overviewBrightness);
+ overviewBrightnessKnob.setAttribute("aria-valuenow",displayValue);
+ overviewBrightnessValue.textContent=displayValue;
+}
+function setKnobFromPointer(event){
+ const rect=overviewBrightnessKnob.getBoundingClientRect();
+ let angle=Math.atan2(event.clientY-(rect.top+rect.height/2),event.clientX-(rect.left+rect.width/2))*180/Math.PI+90;
+ if(angle<0)angle+=360;
+ if(angle>225)angle=angle<315?225:0;
+ updateOverviewBrightness(angle/270*100);
+}
+overviewBrightnessKnob.addEventListener("pointerdown",event=>{overviewBrightnessKnob.setPointerCapture(event.pointerId);setKnobFromPointer(event)});
+overviewBrightnessKnob.addEventListener("pointermove",event=>{if(overviewBrightnessKnob.hasPointerCapture(event.pointerId))setKnobFromPointer(event)});
+overviewBrightnessKnob.addEventListener("keydown",event=>{
+ const adjustment=event.shiftKey?10:1;
+ if(["ArrowUp","ArrowRight"].includes(event.key)){event.preventDefault();updateOverviewBrightness(overviewBrightness+adjustment)}
+ if(["ArrowDown","ArrowLeft"].includes(event.key)){event.preventDefault();updateOverviewBrightness(overviewBrightness-adjustment)}
+ if(event.key==="Home"){event.preventDefault();updateOverviewBrightness(0)}
+ if(event.key==="End"){event.preventDefault();updateOverviewBrightness(100)}
+});
 function testPattern(){document.getElementById("testMsg").textContent="Test pattern sent to "+selected+" (demo only)."}
 function searchModule(){const id=document.getElementById("search").value.trim().toUpperCase();if(modules[id]){selectModule(id);centerOn(id)}else alert("Module not found")}
 function apply(){world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
