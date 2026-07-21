@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AV Monitoring System</title>
+<style>
+:root{--green:#35d07f;--red:#ff6464;--blue:#49b3ff;--bg:#041426;--surface:#0a223a;--surface-2:#0f2d49;--border:#294763;--text:#f2f7ff;--muted:#aec0d5}
+*{box-sizing:border-box}
+body{margin:0;padding-left:180px;font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+.site-nav{position:fixed;inset:0 auto 0 0;z-index:100;width:180px;display:flex;flex-direction:column;gap:8px;padding:24px 14px;background:#020e1b;border-right:1px solid var(--border)}
+.site-nav a{padding:12px 14px;border-radius:10px;color:var(--muted);font-weight:700;text-decoration:none}.site-nav a:hover{background:#123653;color:#fff}.site-nav a.active{background:var(--blue);color:#031321}
+header{height:70px;background:#061b30;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:18px}
+.company-logo{width:150px;height:42px;object-fit:contain;border-radius:12px}.title h1{font-size:22px;margin:0}.title p{font-size:12px;color:var(--muted);margin:3px 0 0}
+.online{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:14px}.online::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px #35d07f88}
+main{height:calc(100vh - 150px);display:grid;grid-template-columns:minmax(0,1fr) 238px;gap:14px;padding:14px;background:var(--bg)}
+.diagram-card{min-width:0;display:flex;align-items:center;justify-content:center;overflow:auto;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px #0005}
+.diagram{position:relative;width:100%;max-width:calc((100vh - 198px)*1.24955);flex:0 1 auto}
+.diagram img{display:block;width:100%;height:auto;border-radius:10px;filter:brightness(.50)}
+.indicator{position:absolute;width:1.3%;height:auto;aspect-ratio:1;padding:0;transform:translate(-50%,-50%);border:clamp(1px,.14vw,2px) solid #fff;border-radius:50%;background:var(--green);box-shadow:0 2px 5px #0008;cursor:pointer;transition:transform .15s ease;z-index:2}
+.indicator:hover,.indicator:focus-visible{transform:translate(-50%,-50%) scale(1.45);outline:3px solid var(--blue);outline-offset:2px;z-index:4}
+.indicator.fault{background:var(--red);animation:fault-flash 1s infinite}
+@keyframes fault-flash{0%,100%{opacity:1;box-shadow:0 0 4px var(--red)}50%{opacity:.25;box-shadow:0 0 15px var(--red)}}
+.panel{overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px #0006;padding:14px}
+.panel h2{font-size:16px;margin:0 0 14px;color:var(--green)}.panel h2.fault{color:var(--red)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:12px}.row b{text-align:right}.status-healthy{color:var(--green)}.status-fault{color:var(--red)}
+hr{border:0;border-top:1px solid var(--border);margin:9px 0}.panel-note{color:var(--muted);font-size:12px;line-height:1.45;margin:12px 0 0}
+.legend{display:grid;gap:9px;margin-top:18px;padding:12px;border:1px solid var(--border);border-radius:10px;background:#06192d}.legend h3{font-size:12px;margin:0 0 3px}.legend div{display:flex;align-items:center;gap:8px;font-size:12px}.dot{width:13px;height:13px;border:2px solid #fff;border-radius:50%}.dot.green{background:var(--green)}.dot.red{background:var(--red)}
+footer{height:80px;background:#061b30;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);gap:11px;padding:11px 19px}
+.card{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface);text-align:center}.card small{font-size:11px;font-weight:700;color:var(--muted)}.card strong{display:block;font-size:16px;margin-top:5px;line-height:1}
+@media(max-width:900px){body{padding:58px 0 0;overflow:auto}.site-nav{inset:0 0 auto;width:auto;height:56px;padding:7px 8px;flex-direction:row;justify-content:center;border-right:0;border-bottom:1px solid var(--border)}.site-nav a{padding:10px 7px;font-size:11px}header{height:64px;padding:8px 12px}.company-logo{width:110px;height:34px}.title h1{font-size:16px}.title p{display:none}main{height:auto;grid-template-columns:1fr}.diagram-card{overflow:hidden;justify-content:center}.diagram{width:100%;max-width:none}.panel{margin:0}footer{height:auto;grid-template-columns:repeat(2,1fr);padding:12px}}
+</style>
+</head>
+<body>
+<nav class="site-nav" aria-label="Main navigation">
+  <a href="../index.html">Home</a>
+  <a href="scada_full_demo.html">Display Monitor</a>
+  <a class="active" href="av_monitor.html" aria-current="page">AV Monitor</a>
+  <a href="../flowchart.html">Project Dashboard</a>
+</nav>
+<header>
+  <img class="company-logo" src="../JPG/Clear logo horizontal.bmp" alt="ClearLED logo">
+  <div class="title"><h1>AV MONITORING SYSTEM</h1><p>Audio, video, control and power equipment overview</p></div>
+  <div class="online">System Online</div>
+</header>
+<main>
+  <section class="diagram-card" aria-label="Interactive AV system diagram">
+    <div class="diagram" id="diagram"><img src="../JPG/AV system.png" alt="AV system signal-flow diagram"></div>
+  </section>
+  <aside class="panel" aria-live="polite">
+    <h2 id="device-name">AV SYSTEM</h2>
+    <div class="row"><span>Status</span><b id="device-status" class="status-healthy">Healthy</b></div>
+    <div class="row"><span>Device ID</span><b id="device-id">SYSTEM</b></div>
+    <div class="row"><span>Category</span><b id="device-category">Overview</b></div>
+    <hr>
+    <div class="row"><span>Signal</span><b id="device-signal">Online</b></div>
+    <div class="row"><span>Last Update</span><b id="device-time">--:--:--</b></div>
+    <p class="panel-note">Select an indicator to inspect that AV device or signal point.</p>
+    <div class="legend"><h3>STATUS LEGEND</h3><div><span class="dot green"></span>Healthy</div><div><span class="dot red"></span>Faulty — flashing</div></div>
+  </aside>
+</main>
+<footer>
+  <div class="card"><small>TOTAL POINTS</small><strong id="total-count">0</strong></div>
+  <div class="card"><small>HEALTHY</small><strong id="healthy-count">0</strong></div>
+  <div class="card"><small>FAULTY</small><strong id="fault-count">0</strong></div>
+  <div class="card"><small>AUTO REFRESH</small><strong>ON</strong></div>
+  <div class="card"><small>LAST UPDATE</small><strong id="last-update">--:--:--</strong></div>
+</footer>
+<script>
+const points=[
+ ["SPD-01","Surge Protection Device","Power",7.6,33.4,"healthy"],
+ ["UPS-01","UPS System","Power",12.9,55.4,"fault"],
+ ["BAT-01","UPS Battery Pack","Power",13.6,66.9,"healthy"],
+ ["PDU-01","Power Distribution Unit","Power",22.0,73.2,"healthy"],
+ ["AUD-01","Audio DSP / Processor","Audio",37.8,29.8,"healthy"],
+ ["AUD-02","Feedback Suppressor","Audio",37.8,38.7,"healthy"],
+ ["AUD-03","Digital Mixer Input","Audio",38.0,46.1,"healthy"],
+ ["VID-01","Video Switcher Input","Video",38.5,51.8,"healthy"],
+ ["VID-02","Video Scaler Input","Video",38.4,59.7,"healthy"],
+ ["AMP-01","Amplifier Input 1","Audio",38.8,64.8,"healthy"],
+ ["AMP-02","Amplifier Input 2","Audio",38.9,68.5,"healthy"],
+ ["DSP-01","Audio DSP / Processor","Rack",42.5,33.6,"healthy"],
+ ["FBS-01","Feedback Suppressor","Rack",42.7,39.4,"fault"],
+ ["MIX-01","Digital Mixer","Rack",42.1,46.0,"healthy"],
+ ["SWX-01","Video Switcher / Matrix","Rack",42.4,53.3,"healthy"],
+ ["VSP-01","Video Scaler / Processor","Rack",42.3,59.8,"healthy"],
+ ["AMP-03","Power Amplifier 1","Rack",47.1,65.1,"healthy"],
+ ["AMP-04","Power Amplifier 2","Rack",47.1,68.5,"fault"],
+ ["AMP-05","Power Amplifier 3","Rack",47.3,72.4,"healthy"],
+ ["CTL-01","Control Network 1","Control",63.9,23.7,"healthy"],
+ ["CTL-02","Control Network 2","Control",63.9,26.1,"healthy"],
+ ["CTL-03","Control Network 3","Control",64.0,28.6,"fault"],
+ ["NET-01","DSP Control Port","Control",56.5,34.2,"healthy"],
+ ["NET-02","Suppressor Control Port","Control",56.5,38.9,"healthy"],
+ ["NET-03","Mixer Control Port 1","Control",56.5,44.4,"healthy"],
+ ["NET-04","Mixer Control Port 2","Control",56.7,46.5,"healthy"],
+ ["NET-05","Matrix Control Port","Control",54.7,48.1,"healthy"],
+ ["NET-06","Scaler Control Port","Control",56.4,56.9,"healthy"],
+ ["NET-07","Amplifier Control Port 1","Control",54.1,61.4,"healthy"],
+ ["NET-08","Amplifier Control Port 2","Control",54.2,64.8,"healthy"],
+ ["NET-09","Amplifier Control Port 3","Control",54.2,68.4,"healthy"],
+ ["NET-10","Amplifier Control Port 4","Control",54.2,72.4,"healthy"],
+ ["OUT-01","Video Output Junction","Video",62.3,52.2,"healthy"],
+ ["OUT-02","Audio Output Junction","Audio",62.5,68.4,"fault"]
+];
+const diagram=document.getElementById("diagram");
+points.forEach(([id,name,category,x,y,status])=>{
+ const button=document.createElement("button");button.type="button";button.className=`indicator ${status}`;button.style.left=`${x}%`;button.style.top=`${y}%`;button.title=`${name}: ${status}`;button.setAttribute("aria-label",`${name}, ${status}`);
+ button.addEventListener("click",()=>selectPoint({id,name,category,status}));diagram.appendChild(button);
+});
+function selectPoint(point){
+ const faulty=point.status==="fault",heading=document.getElementById("device-name"),status=document.getElementById("device-status");
+ heading.textContent=point.name;heading.classList.toggle("fault",faulty);status.textContent=faulty?"Faulty":"Healthy";status.className=faulty?"status-fault":"status-healthy";
+ document.getElementById("device-id").textContent=point.id;document.getElementById("device-category").textContent=point.category;document.getElementById("device-signal").textContent=faulty?"Signal interrupted":"Online";document.getElementById("device-time").textContent=new Date().toLocaleTimeString();
+}
+document.getElementById("total-count").textContent=points.length;document.getElementById("healthy-count").textContent=points.filter(p=>p[5]==="healthy").length;document.getElementById("fault-count").textContent=points.filter(p=>p[5]==="fault").length;
+function updateClock(){document.getElementById("last-update").textContent=new Date().toLocaleTimeString()}updateClock();setInterval(updateClock,1000);
+</script>
+</body>
+</html>
