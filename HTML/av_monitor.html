@@ -45,7 +45,7 @@ footer{height:80px;background:#061b30;border-top:1px solid var(--border);display
 </header>
 <main>
   <section class="diagram-card" aria-label="Interactive AV system diagram">
-    <div class="diagram" id="diagram"><img src="../JPG/AV system.png" alt="AV system signal-flow diagram"></div>
+    <div class="diagram" id="diagram"><img src="../JPG/AV_system.png" alt="AV system signal-flow diagram" onerror="this.onerror=null;this.src='../JPG/System Connection.png';"></div>
   </section>
   <aside class="panel" aria-live="polite">
     <h2 id="device-name">AV SYSTEM</h2>
@@ -104,17 +104,31 @@ const points=[
  ["OUT-02","Audio Output Junction","Audio",62.5,68.4,"fault"]
 ];
 const diagram=document.getElementById("diagram");
+const indicatorMap=new Map();
 points.forEach(([id,name,category,x,y,status])=>{
  const button=document.createElement("button");button.type="button";button.className=`indicator ${status}`;button.style.left=`${x}%`;button.style.top=`${y}%`;button.title=`${name}: ${status}`;button.setAttribute("aria-label",`${name}, ${status}`);
- button.addEventListener("click",()=>selectPoint({id,name,category,status}));diagram.appendChild(button);
+ button.addEventListener("click",()=>selectPoint({id,name,category,status}));
+ indicatorMap.set(id,button);
+ diagram.appendChild(button);
 });
 function selectPoint(point){
  const faulty=point.status==="fault",heading=document.getElementById("device-name"),status=document.getElementById("device-status");
+ document.querySelectorAll(".indicator.selected").forEach(btn=>btn.classList.remove("selected"));
+ const activeButton=indicatorMap.get(point.id);
+ if(activeButton){activeButton.classList.add("selected");}
  heading.textContent=point.name;heading.classList.toggle("fault",faulty);status.textContent=faulty?"Faulty":"Healthy";status.className=faulty?"status-fault":"status-healthy";
  document.getElementById("device-id").textContent=point.id;document.getElementById("device-category").textContent=point.category;document.getElementById("device-signal").textContent=faulty?"Signal interrupted":"Online";document.getElementById("device-time").textContent=new Date().toLocaleTimeString();
 }
-document.getElementById("total-count").textContent=points.length;document.getElementById("healthy-count").textContent=points.filter(p=>p[5]==="healthy").length;document.getElementById("fault-count").textContent=points.filter(p=>p[5]==="fault").length;
-function updateClock(){document.getElementById("last-update").textContent=new Date().toLocaleTimeString()}updateClock();setInterval(updateClock,1000);
+function updateSummary(){
+ document.getElementById("total-count").textContent=points.length;
+ document.getElementById("healthy-count").textContent=points.filter(p=>p[5]==="healthy").length;
+ document.getElementById("fault-count").textContent=points.filter(p=>p[5]==="fault").length;
+}
+function updateClock(){document.getElementById("last-update").textContent=new Date().toLocaleTimeString()}
+updateSummary();
+selectPoint(points.find(p=>p[0]==="AUD-01") || points[0]);
+updateClock();
+setInterval(updateClock,1000);
 </script>
 </body>
 </html>
